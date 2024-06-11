@@ -20,7 +20,6 @@ session_id= None
 
 #logowanie
 
-
 async def login(ws):
     payload = {
         "command": "login",
@@ -40,6 +39,7 @@ async def login(ws):
         print(data)
         return None
 
+#Balans Konta
 async def get_Balance(ws_stream,streamSessionId):
         payload = {
             "command": "getBalance",
@@ -55,23 +55,10 @@ async def get_Balance(ws_stream,streamSessionId):
             print(data)
             return None
 
-async def get_News(ws_stream,streamSessionId): 
-    payload ={
-        "command": "getNews",
-        "streamSessionId": streamSessionId, 
-              }
-    await ws_stream.send(json.dumps(payload))  # Wysłanie danych do serwera
-    response = await ws_stream.recv()  # Odbiór odpowiedzi z serwera
-    data = json.loads(response)  # Konwersja odpowiedzi do formatu JSON
-    if data['data']['title']:
-        print("Otrzymano Newsy")
-        return data['data']['title']
-    else: 
-        print("Błąd Get_News")
-        print(data)
-        return None
 
-async def get_Tick_Price(ws_stream,streamSessionId,symbol):
+# Tick Price
+async def get_Tick_Price(ws_stream,streamSessionId):
+    symbol = input("Podaj Symbol: ")
     payload={
             "command": "getTickPrices", 
             "streamSessionId": streamSessionId,
@@ -90,7 +77,23 @@ async def get_Tick_Price(ws_stream,streamSessionId,symbol):
         print("Błąd Tick_Price")
         print(data)
         return None
-    
+async def get_Candles(ws_stream,streamSessionId):
+    symbol = input("Podaj Symbol: ")
+    payload={
+	"command": "getCandles",
+	"streamSessionId": streamSessionId,
+	"symbol": symbol
+             }
+    await ws_stream.send(json.dumps(payload))  # Wysłanie danych do serwera
+    response = await ws_stream.recv()  # Odbiór odpowiedzi z serwera
+    data = json.loads(response)  # Konwersja odpowiedzi do formatu JSON
+    if data['data']:
+        for key, value in data['data'].items():
+            print(f"{key}: {value}")
+    else:
+        print("failed getting Candles!")
+        print(data)
+        return None
 
 
 # def retrieve_input():
@@ -142,11 +145,8 @@ async def main():
                 print(stream_session_id)
                 # Pobieranie wszystkich symboli
                 await get_Balance(ws_stream,stream_session_id)
-                # News = await get_News(ws_stream,stream_session_id)
-                # print(f"Newsy: {News}")
-                symbol =input("Podaj Symbol: ")
-                await get_Tick_Price(ws_stream,stream_session_id,symbol)
-                
+                # await get_Tick_Price(ws_stream,stream_session_id)
+                await get_Candles(ws_stream,stream_session_id)
             else:
                 print("brak SessionID")
             
